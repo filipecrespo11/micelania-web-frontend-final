@@ -1,0 +1,44 @@
+/* src/App.css */
+
+.App {
+  font-family: Arial, sans-serif;
+  padding: 20px;
+  max-width: 1200px;
+  margin: auto;
+  background-color: #ad3916;
+
+}
+
+h1, h2 {
+  text-align: center;
+}
+
+
+
+form input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+}
+
+button {
+  width: 100%;
+  padding: 5px;
+  background-color: #240e85;
+  color: white;
+  border:transparent;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #240e85;
+}
+
+.customer-list ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+.customer-list li {
+  margin: 10px 0;
+}
