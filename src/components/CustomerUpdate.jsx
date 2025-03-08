@@ -5,7 +5,6 @@ import SignatureCanvas from "react-signature-canvas";
 import CameraCapture from "./CameraCapture";
 import { Link } from "react-router-dom";
 
-
 const CustomerUpdate = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -47,7 +46,7 @@ const CustomerUpdate = () => {
     setCustomer({ ...customer, [name]: value });
   };
 
-  const resizeImage = (base64String, maxWidth = 300, maxHeight = 100, quality = 0.7) => {
+  const resizeImage = (base64String, maxWidth = 300, maxHeight = 100) => {
     return new Promise((resolve) => {
       const img = new Image();
       img.src = base64String;
@@ -70,8 +69,8 @@ const CustomerUpdate = () => {
         canvas.height = height;
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
-        // Converter para JPEG com qualidade reduzida
-        resolve(canvas.toDataURL("image/jpeg", quality));
+        // Remover a redução de qualidade, usando o formato original (PNG para melhor qualidade)
+        resolve(canvas.toDataURL("image/png")); // Alterado de "image/jpeg" para "image/png" para manter qualidade
       };
     });
   };
@@ -85,9 +84,9 @@ const CustomerUpdate = () => {
     }
 
     if (signatureImage) {
-      // Redimensionar e comprimir a imagem antes de enviar
-      signatureImage = await resizeImage(signatureImage, 300, 100, 0.7); // Ajuste a qualidade (0.1 a 1.0)
-      console.log("Tamanho do payload após compressão:", JSON.stringify({ ...customer, signature: signatureImage }).length);
+      // Redimensionar a imagem sem compressão de qualidade
+      signatureImage = await resizeImage(signatureImage, 300, 100);
+      console.log("Tamanho do payload após redimensionamento:", JSON.stringify({ ...customer, signature: signatureImage }).length);
     } else if (!customer.signature) {
       setErrorMessage("A assinatura ou foto é obrigatória.");
       return;
@@ -177,7 +176,6 @@ const CustomerUpdate = () => {
       </form>
 
       <Link to="/customers">Ver Lista de Clientes</Link>
-
     </div>
   );
 };
