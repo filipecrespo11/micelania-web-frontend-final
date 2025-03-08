@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./src/components/login.css"; // Importa o arquivo CSS
+import "/src/components/login.css"; // Importa o arquivo CSS
+
 
 const Login = () => {
   const [username, setUsername] = useState(""); // Estado para o nome de usuário
   const [password, setPassword] = useState(""); // Estado para a senha
   const navigate = useNavigate();
+
 
   // Função para lidar com o login
   const handleLogin = async (e) => {
