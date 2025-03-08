@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
+import logoBase64 from "./logoBase64";  
 
 
 const Login = () => {
@@ -41,8 +41,14 @@ const Login = () => {
     navigate("/register");
   };
 
+  
+
   return (
+
+
+    
     <div className="login-container">
+      <img src={logoBase64} alt="Logotipo" className="logo" />
       <h1>Login</h1>
       <form className="login-form" onSubmit={handleLogin}>
         <div>

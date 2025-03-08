@@ -1,121 +1,207 @@
-/* src/App.css */
-
-.App {
-  font-family: Arial, sans-serif;
-  padding: 20px;
-  max-width: 1200px;
-  margin: auto;
-  background-color: #ad3916;
-
-}
-
-h1, h2 {
-  text-align: center;
-}
+/* Reset básico para remover margens e paddings padrão */
 
 
-
-form input {
-  width: 80%;
-  padding: 10px;
-  margin: 10px 0;
-}
-
-button {
-  width: 100%;
-  padding: 5px;
-  background-color: #240e85;
-  color: white;
-  border:transparent;
-  cursor: pointer;
-}
-
-button:hover {
-  background-color: #240e85;
-}
-
-.customer-list ul {
-  list-style-type: none;
+:root {background-color: #007bff};
+  * {
+  margin: 0;
   padding: 0;
+  box-sizing: border-box;
+  font-family: Arial, sans-serif;
 }
 
-.customer-list li {
-  margin: 10px 0;
-}
-
-/* src/components/login.css */
-
-.signup-link {
-  margin-top: 20px;
-  text-align: center;
-}
-
-
-.login-container, .register-container {
-  max-width: 1000px;
-  margin: 50px auto;
-  padding: 20px;
-  border: 1px solid #ccc;
-  border-radius: 10px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-}
-
-h1 {
-  text-align: center;
-}
-
-form {
+/* Estilização geral do corpo */
+body {
+  background-image: url('data:image/jpeg;base64,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');
+  background-repeat: no-repeat; /* Garante que a imagem não se repita */
+  background-size:cover; /* Faz a imagem cobrir toda a página */
+  background-position: center; /* Centraliza a imagem */
   display: flex;
-  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 50px;
+  margin: 0; /* Remove margens padrão do body */
+  width: 80%;
+  height: 80%;
 }
 
-input {
-  margin: 10px 0;
-  padding: 10px;
-  font-size: 16px;
+/* Estilização geral do container principal */
+.app-container {
+  min-height: 100vh;
+  background-color: #f4f4f9;
+  padding: 20px;
 }
 
-button {
-  margin-top: 10px;
-  padding: 10px;
-  font-size: 16px;
-  cursor: pointer;
+/* Estilização do cabeçalho */
+header {
+  display: flex;
+  align-items:center;
+  justify-content:left;
+  gap: 20px; /* Espaçamento entre o logotipo e o título */
+  padding: 20px;
+  background-color: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  margin-bottom: 20px;
 }
 
-.register-btn, .back-to-login-btn {
-  background-color: #3677bd;
-  color: #fff;
-  border: none;
-  border-radius: 5px;
+/* Estilização do logotipo */
+.logo {
+  height: 50px; /* Ajuste conforme o tamanho desejado */
   width: auto;
+  max-width: 150px; /* Limita a largura máxima para evitar distorção */
+  object-fit: contain; /* Garante que a imagem se ajuste sem perder proporções */
 }
 
-button:hover {
-  background-color: #0056b3;
+/* Container do formulário */
+.form-container {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 400px; /* Largura máxima para PC */
 }
 
-
-.signup-link button {
-  padding: 10px 20px;
-  background-color: #007bff;
-  color: white;
-  border: none;
-  border-radius: 10px;
-  cursor: pointer;
-  font-size: 1rem;
+/* Título do formulário */
+.form-container h2 {
+  font-size: 1.5rem;
+  margin-bottom: 20px;
+  color: #333;
+  text-align: center;
 }
 
-.signup-link button:hover {
-  background-color: #0056b3;
-}
-
-.signup-link p {
-  margin-bottom: 10px;
-  font-size: 1rem;
+/* Estilização dos labels */
+.form-container label {
+  display: block;
+  font-size: 0.9rem;
   color: #555;
+  margin-bottom: 5px;
 }
 
+/* Estilização dos inputs */
+ input,
+ textarea {
+  width: 100%;
+  padding: 10px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+  color: #333;
+  outline: none;
+  transition: border-color 0.3s;
+}
 
+/* Efeito de foco nos inputs */
+.form-container input:focus,
+.form-container textarea:focus {
+  border-color: #007bff;
+}
 
+/* Estilização do textarea (Observação) */
+textarea {
+  resize: vertical;
+  min-height: 80px;
+}
 
+/* Estilização do campo de assinatura (simulando um canvas ou input) */
+input[type="text"][placeholder="Assinatura"] {
+  background-color: #f9f9f9;
+  border: 1px dashed #ccc;
+  text-align: center;
+  color: #888;
+}
 
+/* Estilização dos botões */
+ button {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  background-color: #007bff;
+  transition: background-color 0.3s;
+}
+
+/* Botão "Limpar Assinatura" */
+.form-container button:nth-child(1) {
+  background-color: #ff4d4d;
+  color: #fff;
+}
+
+/* Botão "Adicionar Cliente" */
+.form-container button:nth-child(2) {
+  background-color: #007bff;
+  color: #fff;
+}
+
+/* Efeito hover nos botões */
+.form-container button:hover:nth-child(1) {
+  background-color: #e04343;
+}
+
+.form-container button:hover:nth-child(2) {
+  background-color: #0056b3;
+}
+
+/* Estilização para celular (responsividade) */
+@media (max-width: 768px) {
+  .form-container {
+      max-width: 100%; /* Ocupa toda a largura em telas pequenas */
+      padding: 20px;
+  }
+
+  h2 {
+      font-size: 1.3rem;
+  }
+
+  label {
+      font-size: 0.85rem;
+  }
+
+   input,
+   textarea {
+      font-size: 0.9rem;
+      padding: 8px;
+      border: #0056b3 ;
+      border-color: #007bff;
+  }
+
+  button {
+      font-size: 0.9rem;
+      padding: 8px;
+  }
+}
+
+/* Ajustes para telas muito pequenas (ex.: celulares menores) */
+@media (max-width: 480px) {
+  body {
+      padding: 10px;
+  }
+
+  .form-container {
+      padding: 10px;
+  }
+
+  h2 {
+      font-size: 1.1rem;
+  }
+
+  label {
+      font-size: 0.8rem;
+  }
+
+   input,
+  textarea {
+      font-size: 0.85rem;
+      padding: 6px;
+  }
+
+ button {
+      font-size: 0.85rem;
+      padding: 6px;
+  }
+}
