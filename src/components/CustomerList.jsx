@@ -91,7 +91,7 @@ const CustomerList = () => {
   });
 
   return (
-    <div className="customer-list-container">
+    <div className="app-container">
       {errorMessage && <div style={{ color: "red" }}>{errorMessage}</div>}
       <h1>Lista de Clientes</h1>
       <Link to="/customer-management">Voltar ao Gerenciamento de Clientes</Link>

@@ -123,39 +123,39 @@ const CustomerUpdate = () => {
       {errorMessage && <div style={{ color: "red" }}>{errorMessage}</div>}
       <form onSubmit={handleSubmit}>
         <div>
-          <label>Nome:</label>
+        <p><label>Nome:</label></p>
           <input type="text" name="name" value={customer.name} onChange={handleChange} readOnly />
         </div>
         <div>
-          <label>Email:</label>
+        <p><label>Email:</label></p>
           <input type="email" name="email" value={customer.email} onChange={handleChange} />
         </div>
         <div>
-          <label>Telefone:</label>
+        <p><label>Telefone:</label></p>
           <input type="tel" name="phone" value={customer.phone} onChange={handleChange} required />
         </div>
         <div>
-          <label>CPF:</label>
+        <p><label>CPF:</label></p>
           <input type="text" name="cpf" value={customer.cpf} onChange={handleChange} readOnly />
         </div>
         <div>
-          <label>Data da Compra:</label>
+        <p><label>Data da Compra:</label></p>
           <input type="date" name="purchaseDate" value={customer.purchaseDate} onChange={handleChange} required />
         </div>
         <div>
-          <label>Data de Devolução:</label>
+          <p><label>Data de Devolução:</label></p>
           <input type="date" name="returnDate" value={customer.returnDate} onChange={handleChange} />
         </div>
         <div>
-          <label>Observação:</label>
+        <p> <label>Observação:</label></p>
           <textarea name="observation" value={customer.observation} onChange={handleChange} />
         </div>
         <div>
-          <label>Assinatura ou Foto:</label>
+          <p><label>Assinatura ou Foto:</label></p>
           <SignatureCanvas
             ref={signatureRef}
             penColor="black"
-            canvasProps={{ width: 500, height: 200, className: "signatureCanvas" }}
+            canvasProps={{ width: 600, height: 250, className: "signatureCanvas" }}
           />
           <button type="button" onClick={() => signatureRef.current.clear()} style={{ marginTop: "10px" }}>
             Limpar Assinatura

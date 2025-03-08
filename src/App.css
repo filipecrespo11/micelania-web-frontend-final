@@ -177,7 +177,7 @@ input[type="text"][placeholder="Assinatura"] {
 
 
   body {
-      padding: 250px;
+      padding: 300px;
   }
 
   .form-container {
@@ -190,6 +190,7 @@ input[type="text"][placeholder="Assinatura"] {
 
   label {
       font-size: 0.8rem;
+  
   }
 
    input,

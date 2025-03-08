@@ -4,11 +4,11 @@
   background: center;
 }
 
-.customer-list-container h1 {
+h1 {
   color: #333;
 }
 
-.customer-list-container input[type="text"] {
+input[type="text"] {
   padding: 10px;
   margin-bottom: 20px;
   width: 100%;
@@ -17,12 +17,12 @@
   border-radius: 4px;
 }
 
-.customer-list-container ul {
+ul {
   list-style-type: none;
   padding: 0;
 }
 
-.customer-list-container li {
+li {
   background-color: #f9f9f9;
   margin-bottom: 10px;
   padding: 15px;
@@ -30,11 +30,11 @@
   border-radius: 4px;
 }
 
-.customer-list-container li p {
+li p {
   margin: 5px 0;
 }
 
-.customer-list-container button {
+button {
   padding: 5px 10px;
   margin-top: 10px;
   border: none;
@@ -44,11 +44,11 @@
   cursor: pointer;
 }
 
-.customer-list-container button:hover {
+button:hover {
   background-color: #0056b3;
 }
 
-.customer-list-container img {
+img {
   max-width: 100%;
   height: auto;
   border: 1px solid #ddd;
