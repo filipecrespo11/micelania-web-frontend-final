@@ -147,7 +147,7 @@ input[type="text"][placeholder="Assinatura"] {
 }
 
 /* Estilização para celular (responsividade) */
-@media (max-width: 768px) {
+@media (max-width: 400px) {
   .form-container {
       max-width: 100%; /* Ocupa toda a largura em telas pequenas */
       padding: 20px;
@@ -173,12 +173,11 @@ input[type="text"][placeholder="Assinatura"] {
       font-size: 0.9rem;
       padding: 8px;
   }
-}
 
-/* Ajustes para telas muito pequenas (ex.: celulares menores) */
-@media (max-width: 480px) {
+
+
   body {
-      padding: 10px;
+      padding: 300px;
   }
 
   .form-container {
