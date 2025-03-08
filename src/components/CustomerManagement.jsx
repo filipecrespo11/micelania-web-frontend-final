@@ -79,7 +79,7 @@ const CustomerManagement = () => {
       {errorMessage && <div style={{ color: "red" }}>{errorMessage}</div>}
       <form onSubmit={addCustomer}>
         <div>
-          <label>Nome:</label>
+          <p><label>Nome:</label></p>
           <input
             type="text"
             name="name"
@@ -89,7 +89,7 @@ const CustomerManagement = () => {
           />
         </div>
         <div>
-          <label>Email:</label>
+          <p><label>Email:</label></p>
           <input
             type="email"
             name="email"
@@ -99,7 +99,7 @@ const CustomerManagement = () => {
           />
         </div>
         <div>
-          <label>Telefone:</label>
+        <p> <label>Telefone:</label></p>
           <input
             type="tel"
             name="phone"
@@ -109,7 +109,7 @@ const CustomerManagement = () => {
           />
         </div>
         <div>
-          <label>CPF:</label>
+          <p><label>CPF:</label></p>
           <input
             type="text"
             name="cpf"
@@ -119,7 +119,7 @@ const CustomerManagement = () => {
           />
         </div>
         <div>
-          <label>Data da Compra:</label>
+        <p><label>Data da Compra:</label></p>
           <input
             type="date"
             name="purchaseDate"
@@ -129,7 +129,7 @@ const CustomerManagement = () => {
           />
         </div>
         <div>
-          <label>Data de Devolução:</label>
+        <p><label>Data de Devolução:</label></p>
           <input
             type="date"
             name="returnDate"
@@ -138,7 +138,7 @@ const CustomerManagement = () => {
           />
         </div>
         <div>
-          <label>Senha:</label>
+        <p><label>Senha:</label></p>
           <input
             type="password"
             name="password"
@@ -147,7 +147,7 @@ const CustomerManagement = () => {
           />
         </div>
         <div>
-          <label>Observação:</label>
+        <p><label>Observação:</label></p>
           <textarea
             name="observation"
             value={newCustomer.observation}
@@ -155,7 +155,7 @@ const CustomerManagement = () => {
           />
         </div>
         <div>
-          <label>Assinatura:</label>
+        <p><label>Assinatura:</label></p>
           <SignatureCanvas
             ref={signatureRef}
             penColor="black"

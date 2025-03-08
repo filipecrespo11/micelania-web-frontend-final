@@ -2,6 +2,7 @@
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
+  
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.87);
@@ -11,6 +12,15 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+p {
+  color: #1a1a1a;
+}
+
+textarea {
+  width: 533px;
+  height: 111px;
 }
 
 a {
@@ -52,20 +62,14 @@ button:hover {
 }
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 4px auto -webkit-fo  cus-ring-color;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+input {
+  flex: 1;
+  width: 645px;
+}
+
 .login-form {
 background: center;
 width: 500px;
@@ -75,7 +79,22 @@ border-radius: 8px;
 
 }
 
+.inpdate {
+margin-top: 10px;
+padding: 5px;
+ display: flex; 
+ gap: 10px;
+ 
 
 }
+
+
+@media (max-width: 1300px) {
+  
+  input {
+    width: 80%;
+  }
+
+
 
 }

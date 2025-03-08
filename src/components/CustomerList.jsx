@@ -105,8 +105,8 @@ const CustomerList = () => {
         />
         <div style={{ marginTop: "10px", display: "flex", gap: "10px" }}>
           <div>
-            <label>Data Inicial: </label>
-            <input
+          <p><label>Data Inicial: </label></p>
+            <input className="indate"
               type="date"
               value={startDate}
               onChange={handleStartDateChange}
@@ -114,8 +114,8 @@ const CustomerList = () => {
             />
           </div>
           <div>
-            <label>Data Final: </label>
-            <input
+          <p><label>Data Final: </label></p>
+            <input className="indate"
               type="date"
               value={endDate}
               onChange={handleEndDateChange}
