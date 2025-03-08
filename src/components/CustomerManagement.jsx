@@ -74,7 +74,7 @@ const CustomerManagement = () => {
   };
 
   return (
-    <div className="form-container" >
+    <div className="app-container" >
       <a><p><h2>Gerenciamento</h2></p><p><h2> de Clientes</h2></p></a><Link to="/customers">Ver Lista de Clientes</Link>
       {errorMessage && <div style={{ color: "red" }}>{errorMessage}</div>}
       <form onSubmit={addCustomer}>
