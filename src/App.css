@@ -42,3 +42,80 @@ button:hover {
 .customer-list li {
   margin: 10px 0;
 }
+
+/* src/components/login.css */
+
+.signup-link {
+  margin-top: 20px;
+  text-align: center;
+}
+
+
+.login-container, .register-container {
+  max-width: 1000px;
+  margin: 50px auto;
+  padding: 20px;
+  border: 1px solid #ccc;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+h1 {
+  text-align: center;
+}
+
+form {
+  display: flex;
+  flex-direction: column;
+}
+
+input {
+  margin: 10px 0;
+  padding: 10px;
+  font-size: 16px;
+}
+
+button {
+  margin-top: 10px;
+  padding: 10px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.register-btn, .back-to-login-btn {
+  background-color: #3677bd;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  width: auto;
+}
+
+button:hover {
+  background-color: #0056b3;
+}
+
+
+.signup-link button {
+  padding: 10px 20px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1rem;
+}
+
+.signup-link button:hover {
+  background-color: #0056b3;
+}
+
+.signup-link p {
+  margin-bottom: 10px;
+  font-size: 1rem;
+  color: #555;
+}
+
+
+
+
+

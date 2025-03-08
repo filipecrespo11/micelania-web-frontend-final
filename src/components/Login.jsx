@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import "./login.css"; // Importa o arquivo CSS
+
 
 
 const Login = () => {
