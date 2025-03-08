@@ -36,9 +36,11 @@ body {
   margin: 00;
   flex: 1;
   place-items: center;
+  width: 100%;
   min-width: 320px;
   min-height: 100vh;
   background-color: #5a5a5a;
+  display: flex;
 }
 
 h1 {

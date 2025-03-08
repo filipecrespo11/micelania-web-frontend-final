@@ -46,7 +46,7 @@ const Login = () => {
       <h1>Login</h1>
       <form className="login-form" onSubmit={handleLogin}>
         <div>
-          <label>Nome de Usuário:</label>
+        <p><label>Nome de Usuário:</label></p>
           <input
             type="text"
             placeholder="Digite seu nome de usuário"
@@ -56,7 +56,7 @@ const Login = () => {
           />
         </div>
         <div>
-          <label>Senha:</label>
+        <p><label>Senha:</label></p>
           <input
             type="password"
             placeholder="Digite sua senha"
