@@ -19,7 +19,8 @@ body {
   align-items: center;
   min-height: 100vh;
   padding: 50px;
-  margin: 0; /* Remove margens padrão do body */
+  margin: 10px, #c74731 ; /* Remove margens padrão do body */
+  margin-right: 20px;
 
 }
 
