@@ -1,8 +1,9 @@
 import { useState, useRef } from "react";
-import { cpf as cpfValidator } from "cpf-cnpj-validator"; // Biblioteca para validação de CPF
+import { cpf as cpfValidator } from "cpf-cnpj-validator";
 import axios from "axios";
 import SignatureCanvas from "react-signature-canvas";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import logoBase64 from "./logoBase64";
 
 const CustomerManagement = () => {
   const [newCustomer, setNewCustomer] = useState({
@@ -18,12 +19,35 @@ const CustomerManagement = () => {
     signature: "",
   });
   const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const signatureRef = useRef(null);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/");
+  };
   
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setNewCustomer({ ...newCustomer, [name]: value });
+    
+    // Formatação especial para CPF
+    if (name === "cpf") {
+      const cpfValue = value.replace(/\D/g, ""); // Remove caracteres não numéricos
+      const formattedCpf = cpfValue
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d)/, "$1.$2")
+        .replace(/(\d{3})(\d{1,2})/, "$1-$2")
+        .replace(/(-\d{2})\d+?$/, "$1");
+      setNewCustomer({ ...newCustomer, [name]: formattedCpf });
+    } else {
+      setNewCustomer({ ...newCustomer, [name]: value });
+    }
+    
+    // Limpar mensagem de erro ao digitar
+    if (errorMessage) setErrorMessage("");
   };
 
   const handleClearSignature = () => {
@@ -33,26 +57,45 @@ const CustomerManagement = () => {
 
   const addCustomer = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setErrorMessage("");
+    setSuccessMessage("");
 
-    if (!cpfValidator.isValid(newCustomer.cpf)) {
-      setErrorMessage("CPF inválido.");
+    // Validação do CPF
+    if (!cpfValidator.isValid(newCustomer.cpf.replace(/\D/g, ""))) {
+      setErrorMessage("CPF inválido. Verifique os números digitados.");
+      setLoading(false);
       return;
     }
 
-    const signatureImage = signatureRef.current.isEmpty()
-      ? ""
-      : signatureRef.current.toDataURL();
-    const customerData = { ...newCustomer, signature: signatureImage };
+    // Verificar se a assinatura foi feita
+    if (signatureRef.current.isEmpty()) {
+      setErrorMessage("Por favor, faça a assinatura antes de continuar.");
+      setLoading(false);
+      return;
+    }
+
+    const signatureImage = signatureRef.current.toDataURL();
+    const customerData = { 
+      ...newCustomer, 
+      signature: signatureImage,
+      cpf: newCustomer.cpf.replace(/\D/g, "") // Remove formatação do CPF para envio
+    };
 
     try {
       const response = await axios.post(
         "https://micelania-app.onrender.com/customers",
         customerData,
-        { headers: { Authorization: `Bearer ${localStorage.getItem("token")}` } }
+        { 
+          headers: { 
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json"
+          } 
+        }
       );
 
       if (response.status === 201) {
-        alert("Cliente adicionado com sucesso!");
+        setSuccessMessage("Cliente adicionado com sucesso!");
         setNewCustomer({
           name: "",
           email: "",
@@ -65,109 +108,173 @@ const CustomerManagement = () => {
           observation: "",
           signature: "",
         });
-        setErrorMessage("");
         handleClearSignature();
+        
+        // Limpar mensagem de sucesso após 3 segundos
+        setTimeout(() => setSuccessMessage(""), 3000);
       }
     } catch (error) {
-      setErrorMessage("Erro ao adicionar cliente: " + error.message);
+      const message = error.response?.data?.message || `Erro ao adicionar cliente: ${error.message}`;
+      setErrorMessage(message);
+      console.error("Erro detalhado:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="app-container" >
-      <a><p><h2>Gerenciamento</h2></p><p><h2> de Clientes</h2></p></a><Link to="/customers">Ver Lista de Clientes</Link>
-      {errorMessage && <div style={{ color: "red" }}>{errorMessage}</div>}
-      <form onSubmit={addCustomer}>
-        <div>
-          <p><label>Nome:</label></p>
-          <input
-            type="text"
-            name="name"
-            value={newCustomer.name}
-            onChange={handleChange}
-            required
-          />
+    <div className="app-container">
+      <header>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
+          <img src={logoBase64} alt="Micelânea" className="logo" style={{ height: '50px' }} />
+          <h2 style={{ margin: 0 }}>Gerenciamento de Clientes</h2>
         </div>
-        <div>
-          <p><label>Email:</label></p>
-          <input
-            type="email"
-            name="email"
-            value={newCustomer.email}
-            onChange={handleChange}
-            
-          />
+        <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <Link to="/customers" className="btn-primary action-btn">📋 Ver Lista</Link>
+          <button 
+            onClick={handleLogout} 
+            className="back-to-login-btn"
+            style={{ width: 'auto', padding: '8px 16px', margin: '0' }}
+          >
+            🚪 Sair
+          </button>
         </div>
-        <div>
-        <p> <label>Telefone:</label></p>
-          <input
-            type="tel"
-            name="phone"
-            value={newCustomer.phone}
-            onChange={handleChange}
-            required
-          />
+      </header>
+      
+      {errorMessage && <div className="error-message">{errorMessage}</div>}
+      {successMessage && <div className="success-message">{successMessage}</div>}
+      
+      <form onSubmit={addCustomer} className="form-container">
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="name">Nome:</label>
+            <input
+              id="name"
+              type="text"
+              name="name"
+              value={newCustomer.name}
+              onChange={handleChange}
+              required
+              placeholder="Digite o nome completo"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="cpf">CPF:</label>
+            <input
+              id="cpf"
+              type="text"
+              name="cpf"
+              value={newCustomer.cpf}
+              onChange={handleChange}
+              required
+              placeholder="Digite o CPF"
+              maxLength="14"
+            />
+          </div>
         </div>
-        <div>
-          <p><label>CPF:</label></p>
-          <input
-            type="text"
-            name="cpf"
-            value={newCustomer.cpf}
-            onChange={handleChange}
-            required
-          />
+
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="email">Email:</label>
+            <input
+              id="email"
+              type="email"
+              name="email"
+              value={newCustomer.email}
+              onChange={handleChange}
+              placeholder="Digite o email (opcional)"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="phone">Telefone:</label>
+            <input
+              id="phone"
+              type="tel"
+              name="phone"
+              value={newCustomer.phone}
+              onChange={handleChange}
+              required
+              placeholder="Digite o telefone"
+            />
+          </div>
         </div>
-        <div>
-        <p><label>Data da Compra:</label></p>
-          <input
-            type="date"
-            name="purchaseDate"
-            value={newCustomer.purchaseDate}
-            onChange={handleChange}
-            required
-          />
+
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="purchaseDate">Data da Compra:</label>
+            <input
+              id="purchaseDate"
+              type="date"
+              name="purchaseDate"
+              value={newCustomer.purchaseDate}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="returnDate">Data de Devolução:</label>
+            <input
+              id="returnDate"
+              type="date"
+              name="returnDate"
+              value={newCustomer.returnDate}
+              onChange={handleChange}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="password">Senha do Cartão:</label>
+            <input
+              id="password"
+              type="password"
+              name="password"
+              value={newCustomer.password}
+              onChange={handleChange}
+              placeholder="Digite a senha do cartão"
+            />
+          </div>
         </div>
-        <div>
-        <p><label>Data de Devolução:</label></p>
-          <input
-            type="date"
-            name="returnDate"
-            value={newCustomer.returnDate}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-        <p><label>Senha:</label></p>
-          <input
-            type="password"
-            name="password"
-            value={newCustomer.password}
-            onChange={handleChange}
-          />
-        </div>
-        <div>
-        <p><label>Observação:</label></p>
+
+        <div className="form-group">
+          <label htmlFor="observation">Observação:</label>
           <textarea
+            id="observation"
             name="observation"
             value={newCustomer.observation}
             onChange={handleChange}
+            placeholder="Digite observações adicionais"
+            rows="4"
           />
         </div>
-        <div>
-        <p><label>Assinatura:</label></p>
+
+        <div className="form-group">
+          <label>Assinatura:</label>
           <SignatureCanvas
             ref={signatureRef}
             penColor="black"
-            canvasProps={{ width: 500, height: 200, className: "signatureCanvas" }}
+            canvasProps={{ 
+              width: 500, 
+              height: 200, 
+              className: "signatureCanvas",
+              style: { border: "2px dashed #ccc", borderRadius: "8px" }
+            }}
           />
-          <button type="button" onClick={handleClearSignature}>
+          <button 
+            type="button" 
+            onClick={handleClearSignature}
+            style={{ width: "auto", padding: "8px 16px", marginTop: "10px" }}
+          >
             Limpar Assinatura
           </button>
         </div>
-        <button type="submit">Adicionar Cliente</button>
+
+        <button type="submit" className="primary-btn" disabled={loading}>
+          {loading ? <span className="loading"></span> : "Adicionar Cliente"}
+        </button>
       </form>
-      <Link to="/customers">Ver Lista de Clientes</Link>
     </div>
   );
 };

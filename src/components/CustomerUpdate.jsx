@@ -4,6 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import SignatureCanvas from "react-signature-canvas";
 import CameraCapture from "./CameraCapture";
 import { Link } from "react-router-dom";
+import logoBase64 from "./logoBase64";
 
 const CustomerUpdate = () => {
   const { id } = useParams();
@@ -118,64 +119,168 @@ const CustomerUpdate = () => {
   };
 
   return (
-    <div>
-      <h1>Atualizar Cliente</h1>
-      {errorMessage && <div style={{ color: "red" }}>{errorMessage}</div>}
-      <form onSubmit={handleSubmit}>
-        <div>
-        <p><label>Nome:</label></p>
-          <input type="text" name="name" value={customer.name} onChange={handleChange} readOnly />
+    <div className="app-container">
+      <header>
+        <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
+          <img src={logoBase64} alt="Logo" className="logo" />
+          <h1>Atualizar Cliente</h1>
         </div>
-        <div>
-        <p><label>Email:</label></p>
-          <input type="email" name="email" value={customer.email} onChange={handleChange} />
+        <div style={{ display: "flex", gap: "10px" }}>
+          <Link to="/customers">
+            <button className="primary-btn">📋 VER LISTA</button>
+          </Link>
+          <button 
+            onClick={() => navigate("/")} 
+            className="secondary-btn"
+          >
+            🚪 SAIR
+          </button>
         </div>
-        <div>
-        <p><label>Telefone:</label></p>
-          <input type="tel" name="phone" value={customer.phone} onChange={handleChange} required />
+      </header>
+      
+      {errorMessage && <div className="error-message">{errorMessage}</div>}
+      
+      <form onSubmit={handleSubmit} className="form-container">
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="name">Nome:</label>
+            <input
+              id="name"
+              type="text"
+              name="name"
+              value={customer.name}
+              onChange={handleChange}
+              readOnly
+              style={{ backgroundColor: "#f8f9fa", color: "#6c757d" }}
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="cpf">CPF:</label>
+            <input
+              id="cpf"
+              type="text"
+              name="cpf"
+              value={customer.cpf}
+              onChange={handleChange}
+              readOnly
+              style={{ backgroundColor: "#f8f9fa", color: "#6c757d" }}
+            />
+          </div>
         </div>
-        <div>
-        <p><label>CPF:</label></p>
-          <input type="text" name="cpf" value={customer.cpf} onChange={handleChange} readOnly />
+
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="email">Email:</label>
+            <input
+              id="email"
+              type="email"
+              name="email"
+              value={customer.email}
+              onChange={handleChange}
+              placeholder="Digite o email"
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="phone">Telefone:</label>
+            <input
+              id="phone"
+              type="tel"
+              name="phone"
+              value={customer.phone}
+              onChange={handleChange}
+              required
+              placeholder="Digite o telefone"
+            />
+          </div>
         </div>
-        <div>
-        <p><label>Data da Compra:</label></p>
-          <input type="date" name="purchaseDate" value={customer.purchaseDate} onChange={handleChange} required />
+
+        <div className="form-row">
+          <div className="form-group">
+            <label htmlFor="purchaseDate">Data da Compra:</label>
+            <input
+              id="purchaseDate"
+              type="date"
+              name="purchaseDate"
+              value={customer.purchaseDate}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          <div className="form-group">
+            <label htmlFor="returnDate">Data de Devolução:</label>
+            <input
+              id="returnDate"
+              type="date"
+              name="returnDate"
+              value={customer.returnDate}
+              onChange={handleChange}
+            />
+          </div>
         </div>
-        <div>
-          <p><label>Data de Devolução:</label></p>
-          <input type="date" name="returnDate" value={customer.returnDate} onChange={handleChange} />
+
+        <div className="form-group">
+          <label htmlFor="observation">Observação:</label>
+          <textarea
+            id="observation"
+            name="observation"
+            value={customer.observation}
+            onChange={handleChange}
+            placeholder="Digite observações adicionais"
+            rows="4"
+          />
         </div>
-        <div>
-        <p> <label>Observação:</label></p>
-          <textarea name="observation" value={customer.observation} onChange={handleChange} />
-        </div>
-        <div>
-          <p><label>Assinatura ou Foto:</label></p>
+
+        <div className="form-group">
+          <label>Assinatura ou Foto:</label>
           <SignatureCanvas
             ref={signatureRef}
             penColor="black"
-            canvasProps={{ width: 600, height: 250, className: "signatureCanvas" }}
+            canvasProps={{ 
+              width: 500, 
+              height: 200, 
+              className: "signatureCanvas",
+              style: { border: "2px dashed #ccc", borderRadius: "8px" }
+            }}
           />
-          <button type="button" onClick={() => signatureRef.current.clear()} style={{ marginTop: "10px" }}>
+          <button 
+            type="button" 
+            onClick={() => signatureRef.current.clear()}
+            style={{ 
+              width: "auto", 
+              padding: "8px 16px", 
+              marginTop: "10px",
+              background: "#dc3545",
+              color: "white",
+              border: "none",
+              borderRadius: "8px",
+              cursor: "pointer"
+            }}
+          >
             Limpar Assinatura
           </button>
+          
           <CameraCapture onCapture={handleCameraCapture} />
+          
           {customer.signature && (
-            <div>
-              <p>Pré-visualização:</p>
+            <div style={{ marginTop: "15px" }}>
+              <p style={{ fontWeight: "600", marginBottom: "10px" }}>Pré-visualização:</p>
               <img
                 src={customer.signature}
                 alt="Assinatura/Foto"
-                style={{ border: "1px solid #000", width: "300px", height: "100px" }}
+                className="image-preview"
+                style={{ maxWidth: "300px", height: "auto" }}
               />
             </div>
           )}
         </div>
-        <button type="submit">Atualizar Cliente</button>
-      </form>
 
-      <Link to="/customers">Ver Lista de Clientes</Link>
+        <button type="submit" className="primary-btn">
+          Atualizar Cliente
+        </button>
+      </form>
     </div>
   );
 };
