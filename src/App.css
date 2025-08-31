@@ -100,16 +100,24 @@ header .secondary-btn:hover {
 
 /* Estilização do logotipo */
 .logo {
-  height: 80px;
+  height: 120px;
   width: auto;
-  max-width: 200px;
+  max-width: 300px;
   object-fit: contain;
-  border-radius: 12px;
+  border-radius: 15px;
   margin-bottom: 20px;
-  box-shadow: 0 4px 16px rgba(30, 60, 114, 0.2);
-  border: 2px solid rgba(42, 82, 152, 0.1);
-  background: rgba(255, 255, 255, 0.9);
-  padding: 8px;
+  box-shadow: 0 6px 20px rgba(30, 60, 114, 0.25);
+  border: 2px solid rgba(42, 82, 152, 0.15);
+  background: rgba(255, 255, 255, 0.95);
+  padding: 10px;
+}
+
+/* Logo no cabeçalho - tamanho menor */
+header .logo {
+  height: 60px;
+  max-width: 150px;
+  margin-bottom: 0;
+  padding: 5px;
 }
 
 /* Container de login */

@@ -147,7 +147,7 @@ const CustomerUpdate = () => {
     <div className="app-container">
       <header>
         <div style={{ display: "flex", alignItems: "center", gap: "15px" }}>
-          <img src={logoBase64} alt="Logo" className="logo" />
+          <img src={logoBase64} alt="Micelânea" className="logo" />
           <h1>Atualizar Cliente</h1>
         </div>
         <div style={{ display: "flex", gap: "10px" }}>

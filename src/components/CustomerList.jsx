@@ -145,7 +145,7 @@ const CustomerList = () => {
       <div className="app-container">
         <header>
           <div style={{ display: 'flex', alignItems: 'center', gap: '15px', flexWrap: 'wrap' }}>
-            <img src={logoBase64} alt="Micelânea" className="logo" style={{ height: '50px' }} />
+            <img src={logoBase64} alt="Micelânea" className="logo" />
             <h1 style={{ margin: 0 }}>Lista de Clientes</h1>
         </div>
         <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
