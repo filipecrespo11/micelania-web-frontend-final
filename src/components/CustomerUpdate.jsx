@@ -47,7 +47,7 @@ const CustomerUpdate = () => {
     setCustomer({ ...customer, [name]: value });
   };
 
-  const resizeImage = (base64String, maxWidth = 300, maxHeight = 100) => {
+  const resizeImage = (base64String, maxWidth = 200, maxHeight = 80) => {
     return new Promise((resolve) => {
       const img = new Image();
       img.src = base64String;
@@ -56,7 +56,7 @@ const CustomerUpdate = () => {
         let width = img.width;
         let height = img.height;
 
-        // Redimensionar proporcionalmente
+        // Redimensionar proporcionalmente com tamanhos menores
         if (width > maxWidth) {
           height = (maxWidth / width) * height;
           width = maxWidth;
@@ -70,8 +70,9 @@ const CustomerUpdate = () => {
         canvas.height = height;
         const ctx = canvas.getContext("2d");
         ctx.drawImage(img, 0, 0, width, height);
-        // Remover a redução de qualidade, usando o formato original (PNG para melhor qualidade)
-        resolve(canvas.toDataURL("image/png")); // Alterado de "image/jpeg" para "image/png" para manter qualidade
+        
+        // Usar JPEG com qualidade baixa para reduzir drasticamente o tamanho
+        resolve(canvas.toDataURL("image/jpeg", 0.3)); // Qualidade 30% para máxima compressão
       };
     });
   };
@@ -85,25 +86,49 @@ const CustomerUpdate = () => {
     }
 
     if (signatureImage) {
-      // Redimensionar a imagem sem compressão de qualidade
-      signatureImage = await resizeImage(signatureImage, 300, 100);
-      console.log("Tamanho do payload após redimensionamento:", JSON.stringify({ ...customer, signature: signatureImage }).length);
+      // Redimensionar a imagem com compressão agressiva
+      signatureImage = await resizeImage(signatureImage, 200, 80);
+      
+      // Verificar o tamanho e reduzir mais se necessário
+      let payloadSize = JSON.stringify({ ...customer, signature: signatureImage }).length;
+      console.log("Tamanho do payload após primeira compressão:", payloadSize);
+      
+      // Se ainda estiver muito grande, reduzir ainda mais
+      if (payloadSize > 80000) { // 80KB
+        signatureImage = await resizeImage(signatureImage, 150, 60);
+        payloadSize = JSON.stringify({ ...customer, signature: signatureImage }).length;
+        console.log("Tamanho do payload após segunda compressão:", payloadSize);
+        
+        // Se ainda estiver muito grande, usar compressão máxima
+        if (payloadSize > 80000) {
+          signatureImage = await resizeImage(signatureImage, 120, 50);
+          console.log("Tamanho final após compressão máxima:", JSON.stringify({ ...customer, signature: signatureImage }).length);
+        }
+      }
+      
     } else if (!customer.signature) {
       setErrorMessage("A assinatura ou foto é obrigatória.");
       return;
     }
 
     try {
-      await axios.put(`https://micelania-app.onrender.com/customers/${id}`, {
-        ...customer,
-        signature: signatureImage,
-      }, {
-        headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
+      const payload = { ...customer, signature: signatureImage };
+      console.log("Enviando payload com tamanho:", JSON.stringify(payload).length);
+      
+      await axios.put(`https://micelania-app.onrender.com/customers/${id}`, payload, {
+        headers: { 
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          'Content-Type': 'application/json'
+        },
       });
       alert("Cliente atualizado com sucesso!");
       navigate("/customers");
     } catch (error) {
-      setErrorMessage(`Erro ao atualizar cliente: ${error.message}`);
+      if (error.response?.status === 413) {
+        setErrorMessage("Erro: A imagem é muito grande. Tente capturar uma assinatura menor ou use uma foto de menor resolução.");
+      } else {
+        setErrorMessage(`Erro ao atualizar cliente: ${error.message}`);
+      }
       console.error(error);
     }
   };

@@ -55,6 +55,37 @@ const CustomerManagement = () => {
     setNewCustomer({ ...newCustomer, signature: "" });
   };
 
+  // Função para redimensionar e comprimir imagem
+  const resizeAndCompressImage = (base64String, maxWidth = 200, maxHeight = 80) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64String;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        let width = img.width;
+        let height = img.height;
+
+        // Redimensionar proporcionalmente
+        if (width > maxWidth) {
+          height = (maxWidth / width) * height;
+          width = maxWidth;
+        }
+        if (height > maxHeight) {
+          width = (maxHeight / height) * width;
+          height = maxHeight;
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, width, height);
+        
+        // Usar JPEG com qualidade baixa para reduzir o tamanho
+        resolve(canvas.toDataURL("image/jpeg", 0.3));
+      };
+    });
+  };
+
   const addCustomer = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -75,12 +106,17 @@ const CustomerManagement = () => {
       return;
     }
 
-    const signatureImage = signatureRef.current.toDataURL();
+    // Redimensionar e comprimir a assinatura
+    let signatureImage = signatureRef.current.toDataURL();
+    signatureImage = await resizeAndCompressImage(signatureImage);
+    
     const customerData = { 
       ...newCustomer, 
       signature: signatureImage,
       cpf: newCustomer.cpf.replace(/\D/g, "") // Remove formatação do CPF para envio
     };
+
+    console.log("Tamanho do payload:", JSON.stringify(customerData).length);
 
     try {
       const response = await axios.post(
@@ -114,8 +150,12 @@ const CustomerManagement = () => {
         setTimeout(() => setSuccessMessage(""), 3000);
       }
     } catch (error) {
-      const message = error.response?.data?.message || `Erro ao adicionar cliente: ${error.message}`;
-      setErrorMessage(message);
+      if (error.response?.status === 413) {
+        setErrorMessage("Erro: A assinatura é muito grande. Tente fazer uma assinatura menor ou mais simples.");
+      } else {
+        const message = error.response?.data?.message || `Erro ao adicionar cliente: ${error.message}`;
+        setErrorMessage(message);
+      }
       console.error("Erro detalhado:", error);
     } finally {
       setLoading(false);
