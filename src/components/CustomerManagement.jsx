@@ -122,12 +122,7 @@ const CustomerManagement = () => {
       const response = await axios.post(
         "https://micelania-app.onrender.com/customers",
         customerData,
-        { 
-          headers: { 
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "application/json"
-          } 
-        }
+        { headers: { "Content-Type": "application/json" } }
       );
 
       if (response.status === 201) {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios'
 
 export const useAuth = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -9,51 +10,52 @@ export const useAuth = () => {
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
-      // Verificar se o token ainda é válido
-      checkTokenValidity(token);
+      // Optimistically mark authenticated so UI stays logged in while we verify in background
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+      setIsAuthenticated(true)
+      verifyToken(token)
     } else {
-      setLoading(false);
+      setLoading(false)
     }
-  }, []);
+  }, [])
 
-  const checkTokenValidity = async (token) => {
+  const verifyToken = async (token) => {
     try {
-      const response = await fetch('https://micelania-app.onrender.com/auth/verify', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        setIsAuthenticated(true);
+      const res = await axios.get('https://micelania-app.onrender.com/auth/verify')
+      if (res.status === 200) {
+        setIsAuthenticated(true)
       } else {
-        localStorage.removeItem('token');
-        setIsAuthenticated(false);
+        localStorage.removeItem('token')
+        delete axios.defaults.headers.common['Authorization']
+        setIsAuthenticated(false)
       }
-    } catch (error) {
-      console.error('Erro ao verificar token:', error);
-      localStorage.removeItem('token');
-      setIsAuthenticated(false);
+    } catch (err) {
+      console.error('Erro ao verificar token:', err)
+      localStorage.removeItem('token')
+      delete axios.defaults.headers.common['Authorization']
+      setIsAuthenticated(false)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   const logout = () => {
-    localStorage.removeItem('token');
-    setIsAuthenticated(false);
-    navigate('/');
-  };
+    localStorage.removeItem('token')
+    delete axios.defaults.headers.common['Authorization']
+    setIsAuthenticated(false)
+    navigate('/login')
+  }
 
   const login = (token) => {
-    localStorage.setItem('token', token);
-    setIsAuthenticated(true);
-  };
+    localStorage.setItem('token', token)
+    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`
+    setIsAuthenticated(true)
+  }
 
   return {
     isAuthenticated,
     loading,
     login,
     logout
-  };
-};
+  }
+}

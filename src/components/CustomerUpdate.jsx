@@ -25,9 +25,7 @@ const CustomerUpdate = () => {
   useEffect(() => {
     const fetchCustomer = async () => {
       try {
-        const response = await axios.get(`https://micelania-app.onrender.com/customers/${id}`, {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+  const response = await axios.get(`https://micelania-app.onrender.com/customers/${id}`);
         const data = response.data;
         setCustomer({
           ...data,
@@ -116,10 +114,7 @@ const CustomerUpdate = () => {
       console.log("Enviando payload com tamanho:", JSON.stringify(payload).length);
       
       await axios.put(`https://micelania-app.onrender.com/customers/${id}`, payload, {
-        headers: { 
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
       });
       alert("Cliente atualizado com sucesso!");
       navigate("/customers");

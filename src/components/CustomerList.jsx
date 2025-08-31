@@ -25,9 +25,7 @@ const CustomerList = () => {
     const fetchCustomers = async () => {
       try {
         setLoading(true);
-        const response = await axios.get("https://micelania-app.onrender.com/customers", {
-          headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
-        });
+  const response = await axios.get("https://micelania-app.onrender.com/customers");
         const customerData = response.data;
         const initialShowPassword = customerData.reduce((acc, customer) => {
           acc[customer._id] = false;
