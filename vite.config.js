@@ -7,4 +7,10 @@ export default defineConfig({
   build: {
     sourcemap: true, // Ativa a geração de source map sem usar eval
   },
+  server: {
+    historyApiFallback: true,
+  },
+  preview: {
+    historyApiFallback: true,
+  },
 });
