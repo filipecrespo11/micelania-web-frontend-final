@@ -8,25 +8,89 @@ const CameraCapture = ({ onCapture }) => {
   const [cameraActive, setCameraActive] = useState(false);
 
   const videoConstraints = {
-    width: 640, // Reduzindo a resolução inicial
+    width: 640, // Resolução melhor para qualidade
     height: 480,
     facingMode: "user",
+  };
+
+  // Função para compressão WebP da câmera
+  const compressToWebP = (base64Image, quality = 0.25) => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.src = base64Image;
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const ctx = canvas.getContext("2d");
+
+        // Redimensionar mantendo proporção (máximo 250x200)
+        let { width, height } = img;
+        const maxWidth = 250;
+        const maxHeight = 200;
+        
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+
+        // Desenhar com qualidade otimizada
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'medium';
+        ctx.drawImage(img, 0, 0, width, height);
+
+        // Tentar WebP primeiro
+        let compressedResult = canvas.toDataURL('image/webp', quality);
+        
+        // Fallback para JPEG se WebP não suportado
+        if (compressedResult === 'data:image/png;base64,' || compressedResult.startsWith('data:image/png')) {
+          console.log('WebP não suportado na câmera, usando JPEG');
+          compressedResult = canvas.toDataURL('image/jpeg', quality);
+        }
+
+        console.log(`Câmera WebP/JPEG: ${base64Image.length} → ${compressedResult.length} chars (${Math.round((1 - compressedResult.length/base64Image.length) * 100)}% redução)`);
+        
+        resolve(compressedResult);
+      };
+    });
   };
 
   const activateCamera = () => {
     setCameraActive(true);
   };
 
-  const capture = useCallback(() => {
-    const imageSrc = webcamRef.current.getScreenshot({ width: 300, height: 100, quality: 0.7 }); // Reduzindo ao capturar
-    setImgSrc(imageSrc);
-    if (onCapture) {
-      onCapture(imageSrc);
-    }
-  }, [webcamRef, onCapture]);
+  const capture = useCallback(async () => {
+    // Capturar em boa resolução para depois comprimir
+    const rawImage = webcamRef.current.getScreenshot({ 
+      width: 640, 
+      height: 480, 
+      quality: 0.8 
+    });
+    
+    // Comprimir usando WebP
+    const compressedImage = await compressToWebP(rawImage);
+    console.log("Tamanho da imagem capturada WebP:", compressedImage.length);
+    
+    // Apenas definir a imagem, não chamar onCapture ainda
+    setImgSrc(compressedImage);
+  }, [webcamRef]);
 
   const retake = () => {
     setImgSrc(null);
+  };
+
+  const saveImage = () => {
+    if (imgSrc && onCapture) {
+      onCapture(imgSrc);
+    }
   };
 
   return (
@@ -47,7 +111,7 @@ const CameraCapture = ({ onCapture }) => {
             screenshotFormat="image/jpeg"
             width={640}
             videoConstraints={videoConstraints}
-            screenshotQuality={0.7} // Reduzindo a qualidade diretamente no WebCam
+            screenshotQuality={0.8} // Qualidade boa para depois comprimir
           />
           <div style={{ marginTop: "10px" }}>
             {!imgSrc ? (
@@ -60,7 +124,7 @@ const CameraCapture = ({ onCapture }) => {
                 <button onClick={retake} style={{ padding: "10px 20px", marginRight: "10px" }}>
                   Refazer
                 </button>
-                <button onClick={() => onCapture(imgSrc)} style={{ padding: "10px 20px" }}>
+                <button onClick={saveImage} style={{ padding: "10px 20px" }}>
                   Salvar
                 </button>
               </>

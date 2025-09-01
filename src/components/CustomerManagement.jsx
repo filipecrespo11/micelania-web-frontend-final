@@ -55,33 +55,64 @@ const CustomerManagement = () => {
     setNewCustomer({ ...newCustomer, signature: "" });
   };
 
-  // Função para redimensionar e comprimir imagem
-  const resizeAndCompressImage = (base64String, maxWidth = 200, maxHeight = 80) => {
+  // Função para compressão WebP + Base64
+  const compressToWebP = (base64String, quality = 0.3, maxWidth = 300, maxHeight = 200) => {
     return new Promise((resolve) => {
       const img = new Image();
       img.src = base64String;
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
+        const ctx = canvas.getContext("2d");
 
-        // Redimensionar proporcionalmente
-        if (width > maxWidth) {
-          height = (maxWidth / width) * height;
-          width = maxWidth;
+        // Calcular dimensões mantendo proporção
+        let { width, height } = img;
+        
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
         }
-        if (height > maxHeight) {
-          width = (maxHeight / height) * width;
-          height = maxHeight;
-        }
+
+        // Garantir dimensões válidas
+        width = Math.max(80, Math.round(width));
+        height = Math.max(60, Math.round(height));
 
         canvas.width = width;
         canvas.height = height;
-        const ctx = canvas.getContext("2d");
+
+        // Desenhar com qualidade otimizada
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, width, height);
+
+        // Tentar WebP primeiro
+        let compressedResult = canvas.toDataURL('image/webp', quality);
         
-        // Usar JPEG com qualidade baixa para reduzir o tamanho
-        resolve(canvas.toDataURL("image/jpeg", 0.3));
+        // Fallback para JPEG se WebP não suportado
+        if (compressedResult === 'data:image/png;base64,' || compressedResult.startsWith('data:image/png')) {
+          console.log('WebP não suportado, usando JPEG');
+          compressedResult = canvas.toDataURL('image/jpeg', quality);
+        }
+
+        console.log(`Compressão WebP/JPEG: ${base64String.length} → ${compressedResult.length} chars (${Math.round((1 - compressedResult.length/base64String.length) * 100)}% redução)`);
+        
+        // Se ainda muito grande, reduzir qualidade
+        if (compressedResult.length > 6000) {
+          const lowerQuality = Math.max(0.1, quality - 0.15);
+          const reducedResult = canvas.toDataURL('image/webp', lowerQuality) !== 'data:image/png;base64,' 
+            ? canvas.toDataURL('image/webp', lowerQuality)
+            : canvas.toDataURL('image/jpeg', lowerQuality);
+            
+          resolve(reducedResult.length < compressedResult.length ? reducedResult : compressedResult);
+        } else {
+          resolve(compressedResult);
+        }
       };
     });
   };
@@ -106,9 +137,32 @@ const CustomerManagement = () => {
       return;
     }
 
-    // Redimensionar e comprimir a assinatura
+    // Aplicar compressão WebP na assinatura
     let signatureImage = signatureRef.current.toDataURL();
-    signatureImage = await resizeAndCompressImage(signatureImage);
+    signatureImage = await compressToWebP(signatureImage, 0.3);
+    
+    // Verificar tamanho total e forçar redução adicional se necessário
+    let tempPayload = JSON.stringify({ 
+      ...newCustomer, 
+      signature: signatureImage,
+      cpf: newCustomer.cpf.replace(/\D/g, "") 
+    });
+    
+    if (tempPayload.length > 25000) { // 25KB limite absoluto
+      signatureImage = await compressToWebP(signatureImage, 0.15, 200, 120);
+      tempPayload = JSON.stringify({ 
+        ...newCustomer, 
+        signature: signatureImage,
+        cpf: newCustomer.cpf.replace(/\D/g, "") 
+      });
+      
+      // Último recurso: compressão máxima
+      if (tempPayload.length > 25000) {
+        signatureImage = await compressToWebP(signatureImage, 0.1, 150, 100);
+      }
+    }
+    
+    console.log("Tamanho da assinatura WebP comprimida:", signatureImage.length);
     
     const customerData = { 
       ...newCustomer, 
@@ -116,7 +170,8 @@ const CustomerManagement = () => {
       cpf: newCustomer.cpf.replace(/\D/g, "") // Remove formatação do CPF para envio
     };
 
-    console.log("Tamanho do payload:", JSON.stringify(customerData).length);
+    const finalPayloadSize = JSON.stringify(customerData).length;
+    console.log("Tamanho total do payload:", finalPayloadSize);
 
     try {
       const response = await axios.post(

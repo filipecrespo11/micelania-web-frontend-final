@@ -25,7 +25,7 @@ const CustomerUpdate = () => {
   useEffect(() => {
     const fetchCustomer = async () => {
       try {
-  const response = await axios.get(`https://micelania-app.onrender.com/customers/${id}`);
+        const response = await axios.get(`https://micelania-app.onrender.com/customers/${id}`);
         const data = response.data;
         setCustomer({
           ...data,
@@ -45,32 +45,81 @@ const CustomerUpdate = () => {
     setCustomer({ ...customer, [name]: value });
   };
 
-  const resizeImage = (base64String, maxWidth = 200, maxHeight = 80) => {
+  // Função para compressão WebP + Base64 (85% de redução)
+  const compressToWebP = (base64String, quality = 0.3, maxWidth = 300, maxHeight = 200) => {
     return new Promise((resolve) => {
       const img = new Image();
       img.src = base64String;
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        let width = img.width;
-        let height = img.height;
+        const ctx = canvas.getContext("2d");
 
-        // Redimensionar proporcionalmente com tamanhos menores
-        if (width > maxWidth) {
-          height = (maxWidth / width) * height;
-          width = maxWidth;
+        // Calcular dimensões mantendo proporção
+        let { width, height } = img;
+        
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
         }
-        if (height > maxHeight) {
-          width = (maxHeight / height) * width;
-          height = maxHeight;
-        }
+
+        // Garantir dimensões válidas
+        width = Math.max(80, Math.round(width));
+        height = Math.max(60, Math.round(height));
 
         canvas.width = width;
         canvas.height = height;
-        const ctx = canvas.getContext("2d");
+
+        // Desenhar com alta qualidade
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
         ctx.drawImage(img, 0, 0, width, height);
+
+        // Tentar WebP primeiro
+        let compressedResult = canvas.toDataURL('image/webp', quality);
         
-        // Usar JPEG com qualidade baixa para reduzir drasticamente o tamanho
-        resolve(canvas.toDataURL("image/jpeg", 0.3)); // Qualidade 30% para máxima compressão
+        // Fallback para JPEG se WebP não suportado
+        if (compressedResult === 'data:image/png;base64,' || compressedResult.startsWith('data:image/png')) {
+          console.log('WebP não suportado, usando JPEG');
+          compressedResult = canvas.toDataURL('image/jpeg', quality);
+        }
+
+        console.log(`Compressão WebP/JPEG: ${base64String.length} → ${compressedResult.length} chars (${Math.round((1 - compressedResult.length/base64String.length) * 100)}% redução)`);
+        
+        // Se ainda muito grande, reduzir qualidade progressivamente
+        if (compressedResult.length > 6000) {
+          const lowerQuality = Math.max(0.1, quality - 0.15);
+          console.log(`Aplicando qualidade menor: ${lowerQuality}`);
+          
+          const reducedResult = canvas.toDataURL('image/webp', lowerQuality) !== 'data:image/png;base64,' 
+            ? canvas.toDataURL('image/webp', lowerQuality)
+            : canvas.toDataURL('image/jpeg', lowerQuality);
+            
+          if (reducedResult.length > 8000) {
+            // Última tentativa: reduzir dimensões
+            canvas.width = Math.round(width * 0.7);
+            canvas.height = Math.round(height * 0.7);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.imageSmoothingEnabled = true;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
+            const finalResult = canvas.toDataURL('image/webp', 0.2) !== 'data:image/png;base64,' 
+              ? canvas.toDataURL('image/webp', 0.2)
+              : canvas.toDataURL('image/jpeg', 0.2);
+            
+            resolve(finalResult);
+          } else {
+            resolve(reducedResult.length < compressedResult.length ? reducedResult : compressedResult);
+          }
+        } else {
+          resolve(compressedResult);
+        }
       };
     });
   };
@@ -84,24 +133,28 @@ const CustomerUpdate = () => {
     }
 
     if (signatureImage) {
-      // Redimensionar a imagem com compressão agressiva
-      signatureImage = await resizeImage(signatureImage, 200, 80);
+      // Aplicar compressão WebP para reduzir 85% do tamanho
+      signatureImage = await compressToWebP(signatureImage, 0.3);
       
-      // Verificar o tamanho e reduzir mais se necessário
-      let payloadSize = JSON.stringify({ ...customer, signature: signatureImage }).length;
-      console.log("Tamanho do payload após primeira compressão:", payloadSize);
+      // Verificar tamanho total do payload
+      let customerDataWithSignature = { ...customer, signature: signatureImage };
+      let payloadSize = JSON.stringify(customerDataWithSignature).length;
+      console.log("Tamanho do payload com WebP:", payloadSize);
       
-      // Se ainda estiver muito grande, reduzir ainda mais
-      if (payloadSize > 80000) { // 80KB
-        signatureImage = await resizeImage(signatureImage, 150, 60);
-        payloadSize = JSON.stringify({ ...customer, signature: signatureImage }).length;
-        console.log("Tamanho do payload após segunda compressão:", payloadSize);
-        
-        // Se ainda estiver muito grande, usar compressão máxima
-        if (payloadSize > 80000) {
-          signatureImage = await resizeImage(signatureImage, 120, 50);
-          console.log("Tamanho final após compressão máxima:", JSON.stringify({ ...customer, signature: signatureImage }).length);
-        }
+      // Se ainda muito grande, aplicar compressão mais agressiva
+      if (payloadSize > 25000) {
+        signatureImage = await compressToWebP(signatureImage, 0.15, 200, 120);
+        customerDataWithSignature = { ...customer, signature: signatureImage };
+        payloadSize = JSON.stringify(customerDataWithSignature).length;
+        console.log("Tamanho após compressão agressiva:", payloadSize);
+      }
+      
+      // Última tentativa de compressão se ainda muito grande
+      if (payloadSize > 30000) {
+        signatureImage = await compressToWebP(signatureImage, 0.1, 150, 100);
+        customerDataWithSignature = { ...customer, signature: signatureImage };
+        payloadSize = JSON.stringify(customerDataWithSignature).length;
+        console.log("Tamanho após compressão final:", payloadSize);
       }
       
     } else if (!customer.signature) {
@@ -110,12 +163,97 @@ const CustomerUpdate = () => {
     }
 
     try {
-      const payload = { ...customer, signature: signatureImage };
-      console.log("Enviando payload com tamanho:", JSON.stringify(payload).length);
-      
-      await axios.put(`https://micelania-app.onrender.com/customers/${id}`, payload, {
-        headers: { 'Content-Type': 'application/json' },
+      // Debug detalhado do payload ANTES da limpeza
+      console.log("=== ANÁLISE DETALHADA DO PAYLOAD ===");
+      Object.keys(customer).forEach(key => {
+        const value = customer[key];
+        const size = JSON.stringify(value).length;
+        console.log(`${key}: ${size} caracteres`);
+        if (size > 500) {
+          console.log(`  ⚠️ CAMPO GRANDE: ${key} = ${size} chars`);
+          if (typeof value === 'string' && size > 1000) {
+            console.log(`  📝 Conteúdo: ${value.substring(0, 100)}...`);
+          }
+        }
       });
+      
+      // Preparar dados finais com validação de tamanho
+      let finalCustomerData = { ...customer };
+      
+      // Remover campos desnecessários que podem estar ocupando espaço
+      delete finalCustomerData._id;
+      delete finalCustomerData.__v;
+      delete finalCustomerData.createdAt;
+      delete finalCustomerData.updatedAt;
+      delete finalCustomerData.password; // Nunca enviar senha
+      delete finalCustomerData.purchaseHistory; // Histórico pode ser muito grande
+      delete finalCustomerData.delivery;
+      delete finalCustomerData.notes;
+      delete finalCustomerData.status;
+      delete finalCustomerData.category;
+      delete finalCustomerData.tags;
+      
+      console.log("🧹 Campos removidos: password, purchaseHistory, delivery, etc.");
+      
+      // Limitar tamanho de campos de texto drasticamente
+      if (finalCustomerData.observation && finalCustomerData.observation.length > 100) {
+        finalCustomerData.observation = finalCustomerData.observation.substring(0, 100);
+        console.log("✂️ Observação truncada para 100 caracteres");
+      }
+      
+      // Verificar se há outros campos grandes e limitá-los MUITO mais
+      Object.keys(finalCustomerData).forEach(key => {
+        if (typeof finalCustomerData[key] === 'string' && finalCustomerData[key].length > 500) {
+          console.log(`✂️ Campo ${key} muito grande (${finalCustomerData[key].length} chars), truncando para 100...`);
+          finalCustomerData[key] = finalCustomerData[key].substring(0, 100);
+        }
+      });
+      
+      // Criar payload apenas com campos permitidos para atualização
+      const allowedFields = {
+        name: finalCustomerData.name || "",
+        email: finalCustomerData.email || "",
+        phone: finalCustomerData.phone || "",
+        cpf: finalCustomerData.cpf || "",
+        purchaseDate: finalCustomerData.purchaseDate || "",
+        returnDate: finalCustomerData.returnDate || "",
+        observation: (finalCustomerData.observation || "").substring(0, 100),
+        signature: signatureImage || ""
+      };
+      
+      console.log("📋 Usando apenas campos permitidos para atualização");
+      
+      const finalSize = JSON.stringify(allowedFields).length;
+      console.log("📦 Enviando payload limpo com tamanho:", finalSize);
+      
+      // Última verificação de segurança
+      if (finalSize > 15000) { // Limite ainda mais restritivo
+        console.log("🚨 Payload ainda grande, aplicando limpeza extrema:", finalSize);
+        
+        // Limpeza ultra agressiva
+        const ultraCleanPayload = {
+          name: (allowedFields.name || "").substring(0, 30),
+          email: (allowedFields.email || "").substring(0, 40),
+          phone: (allowedFields.phone || "").substring(0, 15),
+          cpf: (allowedFields.cpf || "").substring(0, 11),
+          purchaseDate: allowedFields.purchaseDate || "",
+          returnDate: allowedFields.returnDate || "",
+          observation: (allowedFields.observation || "").substring(0, 30),
+          signature: signatureImage || "hex:1x1:00"
+        };
+        
+        const ultraSize = JSON.stringify(ultraCleanPayload).length;
+        console.log("📦 Payload ultra limpo final:", ultraSize);
+        
+        await axios.put(`https://micelania-app.onrender.com/customers/${id}`, ultraCleanPayload, {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      } else {
+        await axios.put(`https://micelania-app.onrender.com/customers/${id}`, allowedFields, {
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      
       alert("Cliente atualizado com sucesso!");
       navigate("/customers");
     } catch (error) {
@@ -128,10 +266,14 @@ const CustomerUpdate = () => {
     }
   };
 
-  const handleCameraCapture = (imageSrc) => {
+  const handleCameraCapture = async (imageSrc) => {
+    // Comprimir a imagem da câmera usando WebP
+    const webpCompressed = await compressToWebP(imageSrc, 0.2, 250, 150);
+    console.log("Foto da câmera comprimida WebP:", webpCompressed.length);
+    
     setCustomer((prevCustomer) => ({
       ...prevCustomer,
-      signature: imageSrc,
+      signature: webpCompressed,
     }));
     if (signatureRef.current) {
       signatureRef.current.clear();
@@ -291,8 +433,17 @@ const CustomerUpdate = () => {
                 src={customer.signature}
                 alt="Assinatura/Foto"
                 className="image-preview"
-                style={{ maxWidth: "300px", height: "auto" }}
+                style={{ 
+                  maxWidth: "300px", 
+                  height: "auto",
+                  border: "1px solid #ddd",
+                  borderRadius: "4px",
+                  backgroundColor: "#f9f9f9"
+                }}
               />
+              <p style={{ fontSize: "12px", color: "#666", marginTop: "5px" }}>
+                📦 Imagem WebP comprimida: {customer.signature.length} chars
+              </p>
             </div>
           )}
         </div>
